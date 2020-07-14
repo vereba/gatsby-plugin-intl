@@ -1,25 +1,18 @@
 const webpack = require("webpack")
+const fs = require(`fs`)
+const flatten = require("flat")
 
-function flattenMessages(nestedMessages, prefix = "") {
-  return Object.keys(nestedMessages).reduce((messages, key) => {
-    let value = nestedMessages[key]
-    let prefixedKey = prefix ? `${prefix}.${key}` : key
-
-    if (typeof value === "string") {
-      messages[prefixedKey] = value
-    } else {
-      Object.assign(messages, flattenMessages(value, prefixedKey))
-    }
-
-    return messages
-  }, {})
-}
+// remove endings "/" and ".html" from fileNames
+const removeFileEndings = fileName =>
+  fileName.replace(/\/+$/, "").replace(".html", "")
 
 exports.onCreateWebpackConfig = ({ actions, plugins }, pluginOptions) => {
   const { redirectComponent = null, languages, defaultLanguage } = pluginOptions
   if (!languages.includes(defaultLanguage)) {
     languages.push(defaultLanguage)
   }
+
+  // ['en', 'de', 'en-US'] -> /en|de|en/
   const regex = new RegExp(languages.map(l => l.split("-")[0]).join("|"))
   actions.setWebpackConfig({
     plugins: [
@@ -37,7 +30,6 @@ exports.onCreateWebpackConfig = ({ actions, plugins }, pluginOptions) => {
     ],
   })
 }
-
 exports.onCreatePage = async ({ page, actions }, pluginOptions) => {
   //Exit if the page has already been processed.
   if (typeof page.context.intl === "object") {
@@ -49,28 +41,54 @@ exports.onCreatePage = async ({ page, actions }, pluginOptions) => {
     languages = ["en"],
     defaultLanguage = "en",
     redirect = false,
+    sharedMessages = "common.json",
+    messagesMustBeSplit = false,
   } = pluginOptions
 
-  const getMessages = (path, language) => {
+  const getMessages = (path, language, file) => {
+    const languagePath = `${path}/${language}`
+    const filePath = `${languagePath}${removeFileEndings(file)}.json`
+    const sharedMessagePath = `${languagePath}/${sharedMessages}`
+
+    let messages
     try {
-      // TODO load yaml here
-      const messages = require(`${path}/${language}.json`)
-
-      return flattenMessages(messages)
+      messages = require(filePath)
     } catch (error) {
-      if (error.code === "MODULE_NOT_FOUND") {
-        process.env.NODE_ENV !== "test" &&
+      if (messagesMustBeSplit) {
+        if (typeof messages === "undefined") {
+          // && messagesMustBeSplit){
           console.error(
-            `[gatsby-plugin-intl] couldn't find file "${path}/${language}.json"`
+            `[gatsby-plugin-intl] couldn't read file "${filePath}", messages is undefined.`
           )
+        }
+        if (error.code === "MODULE_NOT_FOUND") {
+          process.env.NODE_ENV !== "test" &&
+            console.error(
+              `[gatsby-plugin-intl] couldn't find file "${filePath}"`
+            )
+        }
       }
+    }
 
-      throw error
+    if (fs.existsSync(`${sharedMessagePath}`)) {
+      messages = messages
+        ? Object.assign(messages, require(`${sharedMessagePath}`))
+        : require(`${sharedMessagePath}`)
+    }
+    if (Object.keys(messages).length === 0 && messages.constructor === Object) {
+      console.error(
+        `No translations for language '${language}': Could neither find common file (${sharedMessagePath}) nor file "${filePath}"`
+      )
+      return {}
+    } else {
+      return flatten(messages)
     }
   }
 
   const generatePage = (routed, language) => {
-    const messages = getMessages(path, language)
+    const fileName = page.path !== "/" ? page.path : "/index"
+    const messages = getMessages(path, language, fileName)
+
     const newPath = routed ? `/${language}${page.path}` : page.path
     return {
       ...page,
@@ -103,4 +121,8 @@ exports.onCreatePage = async ({ page, actions }, pluginOptions) => {
     }
     createPage(localePage)
   })
+}
+
+exports.onPreInit = () => {
+  console.log("Loading Plugin 'Gatsby-Plugin-Intl'")
 }

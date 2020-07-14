@@ -12,14 +12,18 @@
     "@formatjs/intl-relativetimeformat": "^4.5.9",
     "browser-lang": "^0.1.0",
     "intl": "^1.2.5",
-    "react-intl": "^3.12.0"
+    "prop-types": "^15.7.2",
+    "react": "^16.13.1",
+    "react-intl": "^5.2.1",
+    "webpack": "^4.43.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.4",
     "@babel/core": "^7.8.4",
     "babel-preset-gatsby-package": "^0.2.16",
+    "flat": "^5.0.0",
     "cross-env": "^7.0.0",
-    "jest": "^25.1.0",
+    "jest": "^25.5.4",
     "prettier": "^1.19.1",
     "rimraf": "^3.0.2"
   },
