@@ -42,7 +42,6 @@ export default ({ element, props }, pluginOptions) => {
   }
 
   const { pageContext, location } = props
-  const { defaultLanguage } = pluginOptions
   const { intl } = pageContext
   const { language, languages, redirect, routed, originalPath } = intl
 
