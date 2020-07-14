@@ -2,32 +2,17 @@
 
 Internationalize your Gatsby site.
 
-## Features
-
-- Turn your gatsby site into an internationalization-framework out of the box powered by [react-intl](https://github.com/yahoo/react-intl). 
-
-- Support automatic redirection based on the user's preferred language in browser provided by [browser-lang](https://github.com/wiziple/browser-lang).
-
-- Support multi-language url routes in a single page component. This means you don't have to create separate pages such as `pages/en/index.js` or `pages/ko/index.js`.
-
 ## Why?
 
 When you build multilingual sites, Google recommends using different URLs for each language version of a page rather than using cookies or browser settings to adjust the content language on the page. [(read more)](https://support.google.com/webmasters/answer/182192?hl=en&ref_topic=2370587)
 
-## Starters
+## Motivation - Why these local changes?
 
-Demo: [http://gatsby-starter-default-intl.netlify.com](http://gatsby-starter-default-intl.netlify.com)
+The original project created by [Daewoong Moon](https://github.com/wiziple) translates a page by delivering the language key-value-pairs in the corresponding page-context (via `page-context.js`). If it's a big site you're translating with long sentences or many keys you might not want to deliver all language keys in every page (since it also requests the same file multiple times). Therefore I created a solution based on [gatsby-plugin-int](https://github.com/wiziple/gatsby-plugin-intl), which delivers page specific translations with the possibility to provide translations which are used in multiple pages (e.g. footer texts) in a shared translation file.  
 
-Source: [https://github.com/wiziple/gatsby-plugin-intl/tree/master/examples/gatsby-starter-default-intl](https://github.com/wiziple/gatsby-plugin-intl/tree/master/examples/gatsby-starter-default-intl)
+# Local Changes
 
-
-## Showcase
-
-- [https://picpick.app](https://picpick.app)
-- [https://www.krashna.nl](https://www.krashna.nl) [(Source)](https://github.com/krashnamusika/krashna-site)
-- [https://vaktija.eu](https://vaktija.eu)
-
-*Feel free to send us PR to add your project.*
+The translations are not all delivered bundled in one large `page-data.json` file, but in smaller page contexts depending on the page that needs them.
 
 ## How to use
 
@@ -46,11 +31,16 @@ plugins: [
       // language JSON resource path
       path: `${__dirname}/src/intl`,
       // supported language
-      languages: [`en`, `ko`, `de`],
+      languages: [`en`, `en-US`, `de`, `ar`],
       // language file path
-      defaultLanguage: `ko`,
-      // option to redirect to `/ko` when connecting `/`
+      defaultLanguage: `en`,
+      // option to redirect to `/en` when connecting `/`
       redirect: true,
+      // file name of messages which are shared among multiple pages, default: "common.json"
+      sharedMessages = "common.json",
+      // every page must have it's own translation file, default: false
+      messagesMustBeSplit = false,
+      },
     },
   },
 ]
@@ -60,11 +50,61 @@ plugins: [
 
 For example,
 
-| language resource file | language |
-| --- | --- |
-| [src/intl/en.json](https://github.com/wiziple/gatsby-plugin-intl/blob/master/examples/gatsby-starter-default-intl/src/intl/en.json) | English |
-| [src/intl/ko.json](https://github.com/wiziple/gatsby-plugin-intl/blob/master/examples/gatsby-starter-default-intl/src/intl/ko.json) | Korean |
-| [src/intl/de.json](https://github.com/wiziple/gatsby-plugin-intl/blob/master/examples/gatsby-starter-default-intl/src/intl/de.json) | German |
+```
+src
+└───intl
+    │
+    └─── en
+        │   
+        │─ common.json
+        │─ page1.json
+        └─ page2.json
+    └─── de
+        │   
+        │─ common.json
+        │─ page1.json
+        └─ page2.json
+    └─── es
+        │   
+        │─ common.json
+        │─ page1.json
+        └─ page2.json
+```
+
+## Further notes to take care
+
+- no check whether every key is present in every file 
+- tests are not adapted yet
+
+
+
+-----------------------------------------------------------------------------
+# Original Project
+
+## Features
+
+- Turn your gatsby site into an internationalization-framework out of the box powered by [react-intl](https://github.com/yahoo/react-intl). 
+
+- Support automatic redirection based on the user's preferred language in browser provided by [browser-lang](https://github.com/wiziple/browser-lang).
+
+- Support multi-language url routes in a single page component. This means you don't have to create separate pages such as `pages/en/index.js` or `pages/ko/index.js`.
+
+
+## Starters
+
+Demo: [http://gatsby-starter-default-intl.netlify.com](http://gatsby-starter-default-intl.netlify.com)
+
+Source: [https://github.com/wiziple/gatsby-plugin-intl/tree/master/examples/gatsby-starter-default-intl](https://github.com/wiziple/gatsby-plugin-intl/tree/master/examples/gatsby-starter-default-intl)
+
+
+## Showcase
+
+- [https://picpick.app](https://picpick.app)
+- [https://www.krashna.nl](https://www.krashna.nl) [(Source)](https://github.com/krashnamusika/krashna-site)
+- [https://vaktija.eu](https://vaktija.eu)
+
+*Feel free to send us PR to add your project.*
+
 
 
 ### Change your components
